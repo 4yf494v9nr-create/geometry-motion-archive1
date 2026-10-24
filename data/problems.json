@@ -1,0 +1,112 @@
+[
+  {
+    "id": "2022-09-27",
+    "year": 2022,
+    "exam": "9월 모의평가",
+    "number": 27,
+    "title": "사면체 · 최단거리",
+    "description": "서로 수직인 세 모서리와 움직이는 점 P의 최단거리",
+    "answer": "① 3√3",
+    "status": "solved"
+  },
+  {
+    "id": "2022-09-29",
+    "year": 2022,
+    "exam": "9월 모의평가",
+    "number": 29,
+    "title": "종이 접기 · 이면각",
+    "description": "평면 도형을 접어 올린 뒤 두 평면이 이루는 각",
+    "answer": null,
+    "status": "pending"
+  },
+  {
+    "id": "2023-11-27",
+    "year": 2023,
+    "exam": "대학수학능력시험",
+    "number": 27,
+    "title": "직선과 평면의 각",
+    "description": "직선-평면, 평면-평면의 각 관계",
+    "answer": null,
+    "status": "pending"
+  },
+  {
+    "id": "2023-11-30",
+    "year": 2023,
+    "exam": "대학수학능력시험",
+    "number": 30,
+    "title": "정사면체 · 구",
+    "description": "정사면체, 구의 교점과 정사영 넓이",
+    "answer": null,
+    "status": "pending"
+  },
+  {
+    "id": "2024-09-28",
+    "year": 2024,
+    "exam": "9월 모의평가",
+    "number": 28,
+    "title": "두 구의 교원 · 정사영",
+    "description": "두 구의 교원과 정사영 넓이의 최댓값",
+    "answer": null,
+    "status": "pending"
+  },
+  {
+    "id": "2024-11-28",
+    "year": 2024,
+    "exam": "대학수학능력시험",
+    "number": 28,
+    "title": "두 평면 · 원 · 타원",
+    "description": "교선을 공유하는 두 평면과 그 위의 곡선",
+    "answer": null,
+    "status": "pending"
+  },
+  {
+    "id": "2025-09-27",
+    "year": 2025,
+    "exam": "9월 모의평가",
+    "number": 27,
+    "title": "사각뿔대 · 정사영",
+    "description": "사각뿔대의 옆면을 다른 평면 위로 정사영",
+    "answer": null,
+    "status": "pending"
+  },
+  {
+    "id": "2025-09-28",
+    "year": 2025,
+    "exam": "9월 모의평가",
+    "number": 28,
+    "title": "구 · 자취의 교원",
+    "description": "두 직각 조건의 교원과 중심각",
+    "answer": "① 10√30/3",
+    "status": "solved"
+  },
+  {
+    "id": "2026-11-27",
+    "year": 2026,
+    "exam": "대학수학능력시험",
+    "number": 27,
+    "title": "원기둥 · 정사영",
+    "description": "원기둥과 두 수직 평면의 정사영 넓이",
+    "answer": null,
+    "status": "pending"
+  },
+  {
+    "id": "2026-11-28",
+    "year": 2026,
+    "exam": "대학수학능력시험",
+    "number": 28,
+    "title": "사면체 · 접구 · 정사영",
+    "description": "사면체에 접하는 구와 정사영 도형의 넓이",
+    "answer": null,
+    "status": "pending"
+  },
+  {
+    "id": "2027-09-28",
+    "year": 2027,
+    "exam": "9월 모의평가",
+    "number": 28,
+    "title": "구 · 평면 · 정사영",
+    "description": "구 위 네 점의 길이 조건과 두 삼각형 사이의 정사영",
+    "answer": "② 3√2/4",
+    "status": "solved"
+  }
+]
