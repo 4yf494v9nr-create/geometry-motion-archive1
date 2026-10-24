@@ -4,7 +4,7 @@ let problems=[],selected=null,selectedSource="";
 const sourceOf=p=>p.sourceType||"평가원";
 const publisherOf=p=>p.sourceName||sourceOf(p);
 const safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const label=p=>`${p.year}학년도 · ${p.exam==="대학수학능력시험"?"수능":p.exam} · ${p.subject||"기하"} ${p.number}번`;
+const label=p=>`${p.year?p.year+"학년도 · ":""}${p.exam==="대학수학능력시험"?"수능":p.exam} · ${p.subject||"기하"} ${p.number}번`;
 const sourceLabel=p=>sourceOf(p)==="사설"&&p.sourceName?`사설 · ${p.sourceName}`:sourceOf(p)==="교육청"&&p.sourceName?`교육청 · ${p.sourceName}`:sourceOf(p);
 function updateExams(){const box=$("#exam"),old=box.value,exams=[...new Set(problems.filter(p=>!selectedSource||sourceOf(p)===selectedSource).map(p=>p.exam))].sort((a,b)=>a.localeCompare(b,"ko"));box.replaceChildren(new Option("전체 시험",""),...exams.map(v=>new Option(v,v)));if(exams.includes(old))box.value=old;else box.value="";}
 function diagram(type){
@@ -30,8 +30,8 @@ function update(){
 }
 async function boot(){
  try{const res=await fetch("data/problems.json");if(!res.ok)throw Error("문항 목록을 불러오지 못했습니다.");problems=await res.json();
- $("#totalCount").textContent=String(problems.length);$("#solvedCount").textContent=String(problems.filter(p=>p.status==="solved").length);$("#yearCount").textContent=String(new Set(problems.map(p=>p.year)).size);
- const years=[...new Set(problems.map(p=>p.year))].sort((a,b)=>b-a);for(const y of years){const opt=document.createElement("option");opt.value=y;opt.textContent=y+"학년도";$("#year").append(opt);}
+ $("#totalCount").textContent=String(problems.length);$("#solvedCount").textContent=String(problems.filter(p=>p.status==="solved").length);$("#yearCount").textContent=String(new Set(problems.map(p=>p.year).filter(y=>Number.isInteger(y))).size);
+ const years=[...new Set(problems.map(p=>p.year).filter(y=>Number.isInteger(y)))].sort((a,b)=>b-a);for(const y of years){const opt=document.createElement("option");opt.value=y;opt.textContent=y+"학년도";$("#year").append(opt);}
  selected=new URLSearchParams(location.search).get("id");if(!problems.some(p=>p.id===selected))selected="2027-09-28";
  document.querySelectorAll(".source-tab").forEach(btn=>btn.addEventListener("click",()=>{selectedSource=btn.dataset.source||"";document.querySelectorAll(".source-tab").forEach(b=>{const active=b===btn;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});updateExams();update();}));
  updateExams();for(const id of ["search","year","exam","status"])$("#"+id).addEventListener(id==="search"?"input":"change",update);update();
