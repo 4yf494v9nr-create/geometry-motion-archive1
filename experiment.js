@@ -274,7 +274,7 @@ canvas.addEventListener("pointerdown",e=>{
  pointerStart={x:e.clientX,y:e.clientY,travel:0};
  try{canvas.setPointerCapture(e.pointerId);}catch(err){}
  setGesture();
- if(gestures.size===1&&problemLab?.ready&&problemLab.nearDraggable(e.clientX,e.clientY)){gestureMode="dragProblemPoint";}
+ if(gestures.size===1&&problemLab?.ready&&problemLab.nearDraggable(e.clientX,e.clientY)){gestureMode="dragProblemPoint";canvas.style.cursor="grabbing";}
  else if(gestures.size===1&&mode==="point"&&!problemLab?.ready){
   const p=project(pointPosition()),rect=canvas.getBoundingClientRect();
   if(Math.hypot(e.clientX-rect.left-p.x,e.clientY-rect.top-p.y)<28)gestureMode="dragPoint";
@@ -319,7 +319,7 @@ function release(e){
  if(single&&wasOrbit&&pointerStart&&pointerStart.travel>9&&performance.now()-lastMoveTime<75){
   momentum=Math.abs(velocity.yaw)+Math.abs(velocity.pitch)>.12;
  }else{momentum=false;velocity={yaw:0,pitch:0};}
- if(gestures.size)setGesture();else gestureMode="none";
+ if(gestures.size)setGesture();else gestureMode="none";canvas.style.cursor="grab";
  pointerStart=null;
 }
 canvas.addEventListener("pointerup",release);
@@ -363,7 +363,7 @@ if(from&&/^[a-zA-Z0-9-]{1,90}$/.test(from)&&typeof window.GeometryProblemLab==="
  document.querySelector(".lab-modes").hidden=true;
  document.querySelectorAll("[data-panel]").forEach(p=>p.hidden=true);
  byId("problemMode").hidden=false;
- byId("labHint").textContent="원래 문항의 도형을 회전하면서 조건을 조작할 수 있습니다.";
+ byId("labHint").textContent=from==="2022-11-30"?"Q·R 드래그 또는 슬라이더 조작 · 빈 공간에서 회전":"도형의 점을 조작하거나 빈 공간을 드래그해 회전";
  problemLab.load(from).then(record=>{
   byId("modeTitle").textContent="문항별 공간도형 실험";
   byId("modeDescription").textContent="이 문항의 3D 풀이 데이터를 바탕으로 구성한 실험입니다. 슬라이더로 조건을 바꿔 공간적 변화를 확인할 수 있습니다.";
