@@ -18,15 +18,15 @@ function update(){
  const q=$("#search").value.trim().toLowerCase(), year=$("#year").value, exam=$("#exam").value, status=$("#status").value;
  const list=problems.filter(p=>(!q||`${label(p)} ${p.title} ${p.description}`.toLowerCase().includes(q))&&(!year||String(p.year)===year)&&(!exam||p.exam===exam)&&(!status||p.status===status));
  $("#results").textContent=`${list.length}개 문항`;
- $("#cards").innerHTML=list.length?list.map(p=>`<button class="card ${p.id===selected?"active":""}" data-id="${safe(p.id)}"><span class="id">${safe(label(p))}</span><h3>${safe(p.title)}</h3><span class="desc">${safe(p.description)}</span><span class="status ${p.status==="solved"?"solved":""}">${p.status==="solved"?"✓ 단계별 3D 풀이 공개":"◷ 풀이 준비 중"}</span></button>`).join(""):'<p class="empty">검색 조건에 해당하는 문항이 없어.</p>';
+ $("#cards").innerHTML=list.length?list.map(p=>`<button class="card ${p.id===selected?"active":""}" data-id="${safe(p.id)}"><span class="id">${safe(label(p))}</span><h3>${safe(p.title)}</h3><span class="desc">${safe(p.description)}</span><span class="status ${p.status==="solved"?"solved":""}">${p.status==="solved"?"✓ 3D 풀이":"◷ 풀이 준비 중"}</span></button>`).join(""):'<p class="empty">검색 조건에 해당하는 문항이 없어.</p>';
  $("#cards").querySelectorAll(".card").forEach(btn=>btn.addEventListener("click",()=>{selected=btn.dataset.id;history.replaceState(null,"",`?id=${encodeURIComponent(selected)}`);update();if(innerWidth<1000)$("#detail").scrollIntoView({behavior:"smooth",block:"start"});}));
  const p=problems.find(x=>x.id===selected);
- if(!p){$("#detail").innerHTML='<p class="placeholder">문제를 선택해 줘.</p>';return;}
- $("#detail").innerHTML=`<div class="eyebrow">PROBLEM DETAIL</div><h2>${safe(label(p))}</h2><p>${safe(p.description)}</p><div class="question-view">${diagram(p.title)}</div><h3>핵심 주제</h3><p>${safe(p.title)}</p>${p.status==="solved"?`<div class="answer">검산된 답: ${safe(p.answer)}</div><a class="button" href="viewer.html?id=${encodeURIComponent(p.id)}">◈ 3D 단계별 풀이 열기 ↗</a><p>구조화된 해설 데이터와 3D 도형은 저장된 파일에서 읽어 오므로, 열람 시 별도의 AI API를 호출하지 않아.</p>`:'<div class="disabled-note">현재 출처와 문제 유형만 분류했어. 정확한 풀이를 검산하고 3D 모델을 완성한 뒤 공개할 예정이야.</div>'}<p style="font-size:11px">출처: 한국교육과정평가원 제공 문제지. 위 도형은 유형 설명을 위한 개략도이며 원본 문제 그림이 아니야.</p>`;
+ if(!p){$("#detail").innerHTML='<p class="placeholder">문항을 선택하면 상세 정보가 표시됩니다.</p>';return;}
+ $("#detail").innerHTML=`<div class="eyebrow">문항 정보</div><h2>${safe(label(p))}</h2><p>${safe(p.description)}</p><div class="question-view">${diagram(p.title)}</div><h3>주요 개념</h3><p>${safe(p.title)}</p>${p.status==="solved"?`<div class="answer">정답 ${safe(p.answer)}</div><a class="button" href="viewer.html?id=${encodeURIComponent(p.id)}">3D 풀이 보기 ↗</a>`:'<div class="disabled-note">풀이를 준비하고 있습니다.</div>'}<p style="font-size:11px">출처: 한국교육과정평가원. 위 그림은 문제의 주요 도형을 단순화한 예시입니다.</p>`;
 }
 async function boot(){
- try{const res=await fetch("data/problems.json");if(!res.ok)throw Error("문제 데이터 로드에 실패했어.");problems=await res.json();
- $("#totalCount").textContent=String(problems.length);$("#solvedCount").textContent=String(problems.filter(p=>p.status==="solved").length);
+ try{const res=await fetch("data/problems.json");if(!res.ok)throw Error("문항 목록을 불러오지 못했습니다.");problems=await res.json();
+ $("#totalCount").textContent=String(problems.length);$("#solvedCount").textContent=String(problems.filter(p=>p.status==="solved").length);$("#yearCount").textContent=String(new Set(problems.map(p=>p.year)).size);
  const years=[...new Set(problems.map(p=>p.year))].sort((a,b)=>b-a);for(const y of years){const opt=document.createElement("option");opt.value=y;opt.textContent=y+"학년도";$("#year").append(opt);}
  selected=new URLSearchParams(location.search).get("id");if(!problems.some(p=>p.id===selected))selected="2027-09-28";
  for(const id of ["search","year","exam","status"])$("#"+id).addEventListener(id==="search"?"input":"change",update);update();
