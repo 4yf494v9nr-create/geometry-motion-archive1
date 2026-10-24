@@ -42,18 +42,18 @@ function endPlay(){playing=false;clearInterval(playTimer);playTimer=null;$("play
 function autoplay(){if(!lesson||recording)return;if(playing){endPlay();return;}playing=true;$("play").textContent="⏸ 일시정지";playTimer=setInterval(()=>{if(step>=lesson.steps.length-1){endPlay();return;}setStep(step+1);},2500);}
 async function startRecord(){
  if(!lesson||recording)return;
- if(!canvas.captureStream||typeof MediaRecorder==="undefined"){$("recordStatus").textContent="이 브라우저는 화면 녹화를 지원하지 않아.";return;}
+ if(!canvas.captureStream||typeof MediaRecorder==="undefined"){$("recordStatus").textContent="현재 브라우저에서는 화면 녹화를 지원하지 않습니다.";return;}
  const options=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm","video/mp4"].find(t=>MediaRecorder.isTypeSupported(t));
- if(!options){$("recordStatus").textContent="지원되는 녹화 포맷을 찾지 못했어.";return;}
+ if(!options){$("recordStatus").textContent="녹화할 수 있는 영상 형식이 없습니다.";return;}
  endPlay();setStep(0);recorded=[];recFormat=options;
  try{
   const stream=canvas.captureStream(30);recorder=new MediaRecorder(stream,{mimeType:recFormat,videoBitsPerSecond:2500000});
   recorder.ondataavailable=e=>{if(e.data&&e.data.size)recorded.push(e.data)};
-  recorder.onerror=e=>{$("recordStatus").textContent="녹화 오류가 발생했어.";};
-  recorder.onstop=()=>{clearInterval(recTimer);recTimer=null;recording=false;$("record").disabled=false;$("record").textContent="● 풀이 영상 녹화";stream.getTracks().forEach(t=>t.stop());if(!recorded.length)return;const ext=recFormat.includes("mp4")?"mp4":"webm",blob=new Blob(recorded,{type:recFormat}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`geometry-motion-${new URLSearchParams(location.search).get("id")||"lesson"}.${ext}`;document.body.append(a);a.click();a.remove();$("recordStatus").textContent="녹화 파일 저장됨.";setTimeout(()=>URL.revokeObjectURL(url),15000);};
+  recorder.onerror=e=>{$("recordStatus").textContent="녹화 중 오류가 발생했습니다.";};
+  recorder.onstop=()=>{clearInterval(recTimer);recTimer=null;recording=false;$("record").disabled=false;$("record").textContent="● 화면 녹화";stream.getTracks().forEach(t=>t.stop());if(!recorded.length)return;const ext=recFormat.includes("mp4")?"mp4":"webm",blob=new Blob(recorded,{type:recFormat}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`geometry-motion-${new URLSearchParams(location.search).get("id")||"lesson"}.${ext}`;document.body.append(a);a.click();a.remove();$("recordStatus").textContent="영상이 저장되었습니다.";setTimeout(()=>URL.revokeObjectURL(url),15000);};
   recorder.start(200);recording=true;$("record").disabled=true;$("record").textContent="● 녹화 중…";$("recordStatus").textContent="단계별 영상 녹화 중";let count=0;
   recTimer=setInterval(()=>{count++;if(count<lesson.steps.length)setStep(count);else{clearInterval(recTimer);recTimer=null;setTimeout(()=>{if(recorder?.state!=="inactive")recorder.stop();},1300);}},2200);
- }catch(e){recording=false;$("recordStatus").textContent="녹화 시작 실패: "+e.message;}
+ }catch(e){recording=false;$("recordStatus").textContent="녹화를 시작할 수 없습니다: "+e.message;}
 }
 canvas.addEventListener("pointerdown",e=>{pointer.set(e.pointerId,{x:e.clientX,y:e.clientY});canvas.setPointerCapture(e.pointerId)});
 canvas.addEventListener("pointermove",e=>{if(!pointer.has(e.pointerId))return;const old=pointer.get(e.pointerId);pointer.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointer.size===1){yaw+=(e.clientX-old.x)*.01;pitch=Math.max(-1.5,Math.min(1.5,pitch+(e.clientY-old.y)*.01));}else if(pointer.size===2){const points=[...pointer.values()],dist=Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);if(lastDistance!==null)zoom=Math.min(5,Math.max(.25,zoom*dist/Math.max(1,lastDistance)));lastDistance=dist;}});
@@ -62,9 +62,9 @@ canvas.addEventListener("wheel",e=>{e.preventDefault();zoom=Math.min(5,Math.max(
 $("reset").onclick=()=>{yaw=-.53;pitch=.38;zoom=1};$("grid").onclick=()=>{axes=!axes;$("grid").textContent=axes?"⌗ 축 숨기기":"⌗ 축 표시"};$("prev").onclick=()=>{endPlay();setStep(step-1)};$("next").onclick=()=>{endPlay();setStep(step+1)};$("start").onclick=()=>{endPlay();setStep(0)};$("play").onclick=autoplay;$("record").onclick=startRecord;
 window.addEventListener("resize",resize);resize();requestAnimationFrame(frame);
 (async()=>{try{
- const id=new URLSearchParams(location.search).get("id")||"2027-09-28";const [l,p,x1,x2,x3]=await Promise.all([fetch("data/lessons.json"),fetch("data/problems.json"),fetch("data/lessons-extra-1.json"),fetch("data/lessons-extra-2.json"),fetch("data/lessons-extra-3.json")]);if(!l.ok||!p.ok||!x1.ok||!x2.ok||!x3.ok)throw Error("콘텐츠 파일을 불러오지 못했어.");
+ const id=new URLSearchParams(location.search).get("id")||"2027-09-28";const [l,p,x1,x2,x3]=await Promise.all([fetch("data/lessons.json"),fetch("data/problems.json"),fetch("data/lessons-extra-1.json"),fetch("data/lessons-extra-2.json"),fetch("data/lessons-extra-3.json")]);if(!l.ok||!p.ok||!x1.ok||!x2.ok||!x3.ok)throw Error("풀이 데이터를 불러오지 못했습니다.");
  const lessons={...(await l.json()),...(await x1.json()),...(await x2.json()),...(await x3.json())},problems=await p.json();lesson=lessons[id];const current=problems.find(v=>v.id===id);
- if(!lesson)throw Error("이 문제의 3D 풀이가 아직 준비되지 않았어. 목록에서 공개된 3D 풀이를 선택해 줘.");
+ if(!lesson)throw Error("선택한 문항의 3D 풀이가 아직 등록되지 않았습니다. 풀이가 있는 다른 문항을 선택해 주세요.");
  $("heading").textContent=current?`${current.year}학년도 ${current.exam==="대학수학능력시험"?"수능":current.exam} · 기하 ${current.number}번`:"3D 단계별 풀이";
  $("question").textContent=lesson.prompt;$("answer").textContent="정답 · "+lesson.answer;setStep(0);
- }catch(e){lesson=null;$("heading").textContent="3D 풀이 준비 중";$("question").innerHTML=`<div class="error">${esc(e.message)}</div>`;$("step").hidden=true;$("answer").hidden=true;}})();
+ }catch(e){lesson=null;$("heading").textContent="풀이 준비 중";$("question").innerHTML=`<div class="error">${esc(e.message)}</div>`;$("step").hidden=true;$("answer").hidden=true;}})();
