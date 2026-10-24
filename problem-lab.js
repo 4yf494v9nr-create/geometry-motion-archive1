@@ -8,7 +8,7 @@ window.GeometryProblemLab=function(api){
   if(text!==undefined)el.textContent=text;parent.append(el);return el;
  };
  const safeNumber=(x,backup)=>Number.isFinite(x)?x:backup;
- const state={ready:false,record:null,lesson:null,center:[0,0,0],scale:9,tool:"original",selected:null,activeSphere:0,activePolygon:0,activeLine:0,cutHeight:0,cutTilt:18,projectionTilt:32,pointT:.5,phi:0,theta:35.26438968275,beta:90,detail:null};
+ const state={ready:false,record:null,lesson:null,center:[0,0,0],scale:9,tool:"original",selected:null,activeSphere:0,activePolygon:0,activeLine:0,cutHeight:0,cutTilt:18,projectionTilt:32,pointT:.5,phi:0,theta:35.26438968275,beta:90,detail:null,dragHandle:null};
  const panel=byId("problemControls");
  const root=byId("problemInfo");
  const notes=byId("problemNotes");
@@ -225,11 +225,12 @@ window.GeometryProblemLab=function(api){
  function build2022(){
   panel.replaceChildren();
   app("p",panel,"problem-explanation","Q는 원래 대원 위, R은 구 위에 남도록 구성했습니다. 이면각을 변경하면 평면 PQR과 R의 위치가 함께 바뀝니다.");
-  const metrics=metricBox(panel),mTheta=row(metrics,"이면각 θ","35.26°"),mXY=row(metrics,"△OQ₁R₁ 넓이","20.00"),mProjected=row(metrics,"PQR로 정사영한 넓이","16.33");
+  const metrics=metricBox(panel),mTheta=row(metrics,"현재 이면각 θ","35.26°"),mXY=row(metrics,"△OQ₁R₁ 넓이","20.00"),mProjected=row(metrics,"PQR로 정사영한 넓이","16.33"),mMin=row(metrics,"현재 Q에서 가능한 최소 이면각","26.57°");
   const q=slider(panel,"대원 위 Q 위치각",-80,80,1,state.phi,n=>{state.phi=n;state.detail=null;sync();});
   const theta=slider(panel,"평면 PQR의 이면각 θ",0,90,.5,state.theta,n=>{state.theta=n;sync();});
   const r=slider(panel,"교원 위 R 위치각",-180,180,1,state.beta,n=>{state.beta=n;sync();});
-  app("p",panel,"lab-note","※ 원문 조건을 바꿔 살펴보는 실험입니다. 최대넓이 조건은 슬라이더를 조절하는 동안 유지되지 않을 수 있습니다.");
+  const warning=app("p",panel,"lab-constraint-note","Q의 위치에 따라 가능한 최소 이면각이 달라집니다. 각도를 그보다 작게 지정하면 가능한 최소 각으로 자동 조정됩니다.");
+  app("p",panel,"lab-note","노란 Q와 분홍 R을 직접 드래그하거나 슬라이더로 이동할 수 있습니다. ※ 원문 최댓값 조건은 조작 중 유지되지 않을 수 있습니다.");
   button(panel,"원래 풀이의 배치로 복원",()=>{
    state.phi=0;state.theta=35.26438968275;state.beta=90;state.detail=null;
    q.control.value=0;q.display.textContent="0°";
@@ -243,7 +244,8 @@ window.GeometryProblemLab=function(api){
    if(state.theta<d.thetaMin){state.theta=d.thetaMin;theta.control.value=String(d.thetaMin);}
    theta.display.textContent=fixed(state.theta)+"°";
    mTheta.textContent=fixed(d.actualTheta)+"°";mXY.textContent=fixed(d.areaXY);
-   mProjected.textContent=fixed(d.projected);
+   mProjected.textContent=fixed(d.projected);mMin.textContent=fixed(d.thetaMin)+"°";
+   warning.textContent="현재 Q에서 가능한 이면각: "+fixed(d.thetaMin)+"°~90°. Q를 옮길 때 범위를 벗어난 설정은 가장 가까운 가능한 각도로 맞춰집니다.";
   };
  }
  function build2022P(){
@@ -342,7 +344,7 @@ window.GeometryProblemLab=function(api){
   try{
    const canonical=idAlias(id);
    const list=["data/problems.json","data/lessons.json","data/lessons-extra-1.json","data/lessons-extra-2.json","data/lessons-extra-3.json","data/lessons-private.json"];
-   const response=await Promise.all(list.map(path=>fetch(path)));
+   const response=await Promise.all(list.map(path=>fetch(path,{cache:"no-store"})));
    if(response.some(x=>!x.ok))throw Error("문항별 실험 데이터를 불러올 수 없습니다.");
    const [problems,...sets]=await Promise.all(response.map(x=>x.json()));
    const lessons=Object.assign({},...sets);
@@ -361,6 +363,34 @@ window.GeometryProblemLab=function(api){
   }
  }
  function movePoint(clientX,clientY){
+  if(state.tool==="special2022"){
+   const handle=state.dragHandle;if(!handle)return false;
+   const rect=api.canvas.getBoundingClientRect(),x=clientX-rect.left,y=clientY-rect.top;
+   const C=[2,rt(5),5],u=[2/3,rt(5)/3,0],P=[0,0,1],fromPhi=state.phi;
+   const Qat=phi=>v.add(C,v.mul(v.add(v.mul(u,Math.cos(deg(phi))),[0,0,Math.sin(deg(phi))]),5));
+   // R은 현재 평면 PQR과 구의 교원 위에서 움직이므로 현재 구와 평면의 교선을 사용한다.
+   const Q=Qat(fromPhi),d=norm(v.sub(Q,P));
+   const F=v.add(P,v.mul(d,v.dot(v.sub(C,P),d)));
+   const n0=norm(v.sub(C,F)),b=norm(v.cross(d,n0));
+   const alpha=deg(state.detail?.alpha??-65.9051574478893);
+   const t=norm(v.add(v.mul(n0,Math.cos(alpha)),v.mul(b,Math.sin(alpha))));
+   const J=v.add(F,v.mul(t,v.dot(v.sub(C,F),t)));
+   const rr=rt(Math.max(0,25-v.len(v.sub(C,J))**2));
+   const Rat=beta=>v.add(J,v.mul(v.add(v.mul(d,Math.cos(deg(beta))),v.mul(t,Math.sin(deg(beta)))),rr));
+   const low=handle==="Q"?-80:-180,high=handle==="Q"?80:180;
+   let best=low,bestDist=Infinity;
+   for(let a=low;a<=high;a+=1){
+    const screen=project(handle==="Q"?Qat(a):Rat(a));
+    const dist=(screen.x-x)**2+(screen.y-y)**2;
+    if(dist<bestDist){bestDist=dist;best=a;}
+   }
+   const name=handle==="Q"?"대원 위 Q 위치각":"교원 위 R 위치각";
+   state[handle==="Q"?"phi":"beta"]=best;
+   const control=[...panel.querySelectorAll('input[type="range"]')].find(e=>e.getAttribute("aria-label")===name);
+   if(control){control.value=String(best);control.dispatchEvent(new Event("input",{bubbles:true}));}
+   else sync();
+   return true;
+  }
   if(state.tool!=="special2022point"&&state.tool!=="point")return false;
   const edge=state.tool==="special2022point"?{a:[2,0,0],b:[0,2*rt(3),0]}:getOriginalData().lines[state.activeLine];
   if(!edge)return false;
@@ -375,7 +405,16 @@ window.GeometryProblemLab=function(api){
   return true;
  }
  function nearDraggable(clientX,clientY){
-  if(!state.ready||!["special2022point","point"].includes(state.tool))return false;
+  if(!state.ready)return false;
+  state.dragHandle=null;
+  if(state.tool==="special2022"){
+   const detail=state.detail;if(!detail)return false;
+   const rect=api.canvas.getBoundingClientRect(),x=clientX-rect.left,y=clientY-rect.top;
+   const Q=project(detail.Q),R=project(detail.R),distQ=Math.hypot(x-Q.x,y-Q.y),distR=Math.hypot(x-R.x,y-R.y);
+   if(Math.min(distQ,distR)<37){state.dragHandle=distQ<=distR?"Q":"R";return true;}
+   return false;
+  }
+  if(!["special2022point","point"].includes(state.tool))return false;
   const rect=api.canvas.getBoundingClientRect();
   const point=state.tool==="special2022point"?v.mix([2,0,0],[0,2*rt(3),0],state.pointT):
    (()=>{const l=getOriginalData().lines[state.activeLine];return l?v.mix(l.a,l.b,state.pointT):null;})();
