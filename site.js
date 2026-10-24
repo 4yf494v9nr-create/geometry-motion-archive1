@@ -33,7 +33,7 @@ async function boot(){
  $("#totalCount").textContent=String(problems.length);$("#solvedCount").textContent=String(problems.filter(p=>p.status==="solved").length);$("#yearCount").textContent=String(new Set(problems.map(p=>p.year).filter(y=>Number.isInteger(y))).size);
  const years=[...new Set(problems.map(p=>p.year).filter(y=>Number.isInteger(y)))].sort((a,b)=>b-a);for(const y of years){const opt=document.createElement("option");opt.value=y;opt.textContent=y+"학년도";$("#year").append(opt);}
  selected=new URLSearchParams(location.search).get("id");if(!problems.some(p=>p.id===selected))selected="2027-09-28";
- document.querySelectorAll(".source-tab").forEach(btn=>btn.addEventListener("click",()=>{selectedSource=btn.dataset.source||"";document.querySelectorAll(".source-tab").forEach(b=>{const active=b===btn;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});updateExams();update();}));
+ document.querySelectorAll(".source-tab").forEach(btn=>btn.addEventListener("click",()=>{selectedSource=btn.dataset.source||"";$("#year").value="";$("#search").value="";document.querySelectorAll(".source-tab").forEach(b=>{const active=b===btn;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active));});updateExams();update();}));
  updateExams();for(const id of ["search","year","exam","status"])$("#"+id).addEventListener(id==="search"?"input":"change",update);update();
  }catch(e){$("#cards").innerHTML=`<p class="error">${safe(e.message)}</p>`;}
 }
