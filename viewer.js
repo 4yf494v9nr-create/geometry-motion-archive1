@@ -62,8 +62,8 @@ canvas.addEventListener("wheel",e=>{e.preventDefault();zoom=Math.min(5,Math.max(
 $("reset").onclick=()=>{yaw=-.53;pitch=.38;zoom=1};$("grid").onclick=()=>{axes=!axes;$("grid").textContent=axes?"⌗ 축 숨기기":"⌗ 축 표시"};$("prev").onclick=()=>{endPlay();setStep(step-1)};$("next").onclick=()=>{endPlay();setStep(step+1)};$("start").onclick=()=>{endPlay();setStep(0)};$("play").onclick=autoplay;$("record").onclick=startRecord;
 window.addEventListener("resize",resize);resize();requestAnimationFrame(frame);
 (async()=>{try{
- const id=new URLSearchParams(location.search).get("id")||"2027-09-28";const [l,p]=await Promise.all([fetch("data/lessons.json"),fetch("data/problems.json")]);if(!l.ok||!p.ok)throw Error("콘텐츠 파일을 불러오지 못했어.");
- const lessons=await l.json(),problems=await p.json();lesson=lessons[id];const current=problems.find(v=>v.id===id);
+ const id=new URLSearchParams(location.search).get("id")||"2027-09-28";const [l,p,x1,x2,x3]=await Promise.all([fetch("data/lessons.json"),fetch("data/problems.json"),fetch("data/lessons-extra-1.json"),fetch("data/lessons-extra-2.json"),fetch("data/lessons-extra-3.json")]);if(!l.ok||!p.ok||!x1.ok||!x2.ok||!x3.ok)throw Error("콘텐츠 파일을 불러오지 못했어.");
+ const lessons={...(await l.json()),...(await x1.json()),...(await x2.json()),...(await x3.json())},problems=await p.json();lesson=lessons[id];const current=problems.find(v=>v.id===id);
  if(!lesson)throw Error("이 문제의 3D 풀이가 아직 준비되지 않았어. 목록에서 공개된 3D 풀이를 선택해 줘.");
  $("heading").textContent=current?`${current.year}학년도 ${current.exam==="대학수학능력시험"?"수능":current.exam} · 기하 ${current.number}번`:"3D 단계별 풀이";
  $("question").textContent=lesson.prompt;$("answer").textContent="정답 · "+lesson.answer;setStep(0);
