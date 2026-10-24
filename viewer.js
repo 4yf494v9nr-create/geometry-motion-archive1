@@ -62,10 +62,10 @@ canvas.addEventListener("wheel",e=>{e.preventDefault();zoom=Math.min(5,Math.max(
 $("reset").onclick=()=>{yaw=-.53;pitch=.38;zoom=1};$("grid").onclick=()=>{axes=!axes;$("grid").textContent=axes?"⌗ 축 숨기기":"⌗ 축 표시"};$("prev").onclick=()=>{endPlay();setStep(step-1)};$("next").onclick=()=>{endPlay();setStep(step+1)};$("start").onclick=()=>{endPlay();setStep(0)};$("play").onclick=autoplay;$("record").onclick=startRecord;
 window.addEventListener("resize",resize);resize();requestAnimationFrame(frame);
 (async()=>{try{
- const id=new URLSearchParams(location.search).get("id")||"2027-09-28";const [l,p,x1,x2,x3]=await Promise.all([fetch("data/lessons.json"),fetch("data/problems.json"),fetch("data/lessons-extra-1.json"),fetch("data/lessons-extra-2.json"),fetch("data/lessons-extra-3.json")]);if(!l.ok||!p.ok||!x1.ok||!x2.ok||!x3.ok)throw Error("풀이 데이터를 불러오지 못했습니다.");
- const lessons={...(await l.json()),...(await x1.json()),...(await x2.json()),...(await x3.json())},problems=await p.json();lesson=lessons[id];const current=problems.find(v=>v.id===id);
+ const id=new URLSearchParams(location.search).get("id")||"2027-09-28";const [l,p,x1,x2,x3,x4]=await Promise.all([fetch("data/lessons.json"),fetch("data/problems.json"),fetch("data/lessons-extra-1.json"),fetch("data/lessons-extra-2.json"),fetch("data/lessons-extra-3.json"),fetch("data/lessons-private.json")]);if(!l.ok||!p.ok||!x1.ok||!x2.ok||!x3.ok||!x4.ok)throw Error("풀이 데이터를 불러오지 못했습니다.");
+ const lessons={...(await l.json()),...(await x1.json()),...(await x2.json()),...(await x3.json()),...(await x4.json())},problems=await p.json();lesson=lessons[id];const current=problems.find(v=>v.id===id);
  if(!lesson)throw Error("선택한 문항의 3D 풀이가 아직 등록되지 않았습니다. 풀이가 있는 다른 문항을 선택해 주세요.");
- $("heading").textContent=current?`${current.year}학년도 ${current.exam==="대학수학능력시험"?"수능":current.exam} · ${current.subject||"기하"} ${current.number}번`:"3D 단계별 풀이";
+ $("heading").textContent=current?`${current.year?current.year+"학년도 · ":""}${current.sourceType==="사설"?(current.sourceName+" · "):""}${current.exam==="대학수학능력시험"?"수능":current.exam} · ${current.subject||"기하"} ${current.number}번`:"3D 단계별 풀이";
  const sourceEl=document.getElementById("sourceInfo");if(sourceEl&&current){const category=current.sourceType||"평가원";sourceEl.textContent=category+(current.sourceName&&current.sourceName!==category?` · ${current.sourceName}`:"");}
  $("question").textContent=lesson.prompt;$("answer").textContent="정답 · "+lesson.answer;setStep(0);
  }catch(e){lesson=null;$("heading").textContent="풀이 준비 중";$("question").innerHTML=`<div class="error">${esc(e.message)}</div>`;$("step").hidden=true;$("answer").hidden=true;}})();
