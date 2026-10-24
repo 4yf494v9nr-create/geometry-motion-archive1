@@ -86,6 +86,7 @@ window.GeometryProblemLab=function(api){
   const objects=state.lesson.objects||[];
   return {
    spheres:objects.filter(o=>o.type==="sphere"),
+   circles:objects.filter(o=>o.type==="circle"),
    polys:objects.filter(o=>o.type==="polygon"&&o.pts?.length>=3),
    lines:objects.filter(o=>o.type==="line"),
    points:objects.filter(o=>o.type==="point")
