@@ -180,6 +180,7 @@ window.addEventListener("resize",resize);resize();requestAnimationFrame(frame);
  const lessons={...(await l.json()),...(await x1.json()),...(await x2.json()),...(await x3.json()),...(await x4.json())},problems=await p.json();lesson=lessons[id];if(lesson)updateSceneCenter(lesson.objects);const current=problems.find(v=>v.id===id);
  if(!lesson)throw Error("선택한 문항의 3D 풀이가 아직 등록되지 않았습니다. 풀이가 있는 다른 문항을 선택해 주세요.");
  $("heading").textContent=current?`${current.year?current.year+"학년도 · ":""}${current.sourceType==="사설"?(current.sourceName+" · "):""}${current.exam==="대학수학능력시험"?"수능":current.exam} · ${current.subject||"기하"} ${current.number}번`:"3D 단계별 풀이";
+ const experimentLink=document.getElementById("experimentLink");if(experimentLink&&current){const text=(current.title+" "+current.description).toLowerCase();const mode=/정사영|투영/.test(text)?"projection":/최솟값|최댓값|움직이는 점|최단거리/.test(text)?"point":/구|교원|단면|접구/.test(text)?"cut":"highlight";experimentLink.href="experiment.html?mode="+mode+"&from="+encodeURIComponent(id);}
  const sourceEl=document.getElementById("sourceInfo");if(sourceEl&&current){const category=current.sourceType||"평가원";sourceEl.textContent=category+(current.sourceName&&current.sourceName!==category?` · ${current.sourceName}`:"");}
  $("question").textContent=lesson.prompt;$("answer").textContent="정답 · "+lesson.answer;setStep(0);
  }catch(e){lesson=null;$("heading").textContent="풀이 준비 중";$("question").innerHTML=`<div class="error">${esc(e.message)}</div>`;$("step").hidden=true;$("answer").hidden=true;}})();
