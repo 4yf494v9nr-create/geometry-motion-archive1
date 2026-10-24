@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<meta name="description" content="구의 평면 절단, 정사영, 점의 이동과 공간도형의 면·모서리를 직접 조작하는 기하 실험실">
+<title>공간도형 실험실 | GEOMETRY MOTION</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="experiment.css">
+<script src="experiment.js" defer></script>
+</head>
+<body class="experiment-page">
+<header class="topbar"><a class="brand" href="./"><span class="logo">◇</span><span>GEOMETRY <em>MOTION</em></span></a>
+<nav><a href="./">기출문제</a><a href="viewer.html?id=2027-09-28">3D 풀이</a><a href="experiment.html" class="active">실험실</a></nav></header>
+<main class="experiment-shell">
+<section class="experiment-head">
+<div class="eyebrow">GEOMETRY LAB / INTERACTIVE</div>
+<h1>공간도형 <em>실험실</em></h1>
+<p>조건을 직접 바꾸면서 단면, 정사영, 길이의 변화와 공간 관계를 확인합니다.</p>
+<a id="backToLesson" class="back-lesson" href="./" hidden>← 이전 3D 풀이로 돌아가기</a>
+</section>
+<nav class="lab-modes" aria-label="실험 종류">
+<button class="lab-mode active" data-mode="cut" type="button" aria-pressed="true"><span class="lab-mode-num">01</span> 구의 평면 절단</button>
+<button class="lab-mode" data-mode="projection" type="button" aria-pressed="false"><span class="lab-mode-num">02</span> 정사영</button>
+<button class="lab-mode" data-mode="point" type="button" aria-pressed="false"><span class="lab-mode-num">03</span> 움직이는 점</button>
+<button class="lab-mode" data-mode="highlight" type="button" aria-pressed="false"><span class="lab-mode-num">04</span> 면·선분 선택</button>
+</nav>
+<div class="lab-layout">
+<section class="lab-stage" aria-label="3D 실험 화면">
+<canvas id="labCanvas" aria-label="회전 가능한 공간도형 실험 모델"></canvas>
+<div class="lab-stage-hint" id="labHint">한 손가락 회전 · 두 손가락 확대 및 이동</div>
+<div class="lab-stage-bottom">
+<span class="lab-legend"><i class="legend-dot" aria-hidden="true"></i><span id="sceneLabel">구 S · 반지름 3</span></span>
+<div class="lab-actions">
+<button type="button" id="toggleAxes" title="좌표축 켜기 또는 끄기" aria-pressed="false">좌표축</button>
+<button type="button" id="resetView">시점 초기화</button>
+</div></div>
+</section>
+<aside class="lab-panel">
+<div class="eyebrow" id="modeCode">EXPERIMENT 01</div>
+<h2 id="modeTitle">구의 평면 절단</h2>
+<p class="lab-panel-intro" id="modeDescription">평면을 움직이면 구의 단면 반지름과 넓이가 어떻게 달라지는지 확인할 수 있습니다.</p>
+<div class="lab-controls" data-panel="cut">
+<label class="lab-control-label" for="cutHeight">중심에서 평면까지의 부호 있는 거리 <output id="cutHeightLabel">0.0</output></label>
+<input id="cutHeight" type="range" min="-3" max="3" step="0.05" value="0">
+<label class="lab-control-label" for="cutTilt">평면 기울기 <output id="cutTiltLabel">24°</output></label>
+<input id="cutTilt" type="range" min="0" max="75" step="1" value="24">
+<div class="lab-values"><div><span>단면 반지름</span><strong id="cutRadius">3.00</strong></div><div><span>단면 넓이</span><strong id="cutArea">9.00π</strong></div></div>
+<div class="lab-equation">r² = R² − h²</div>
+<div class="lab-note">반지름 R=3인 구입니다. 평면의 방향이 달라도 중심에서 평면까지의 거리가 같으면 단면 넓이는 같습니다.</div>
+</div>
+<div class="lab-controls" data-panel="projection" hidden>
+<label class="lab-control-label" for="projectTilt">정사영할 평면의 기울기 <output id="projectTiltLabel">30°</output></label>
+<input id="projectTilt" type="range" min="0" max="90" step="1" value="30">
+<div class="lab-values"><div><span>원래 삼각형의 넓이</span><strong>6.00</strong></div><div><span>정사영한 넓이</span><strong id="projectArea">5.20</strong></div></div>
+<div class="lab-equation">S′ = S × |cos θ|</div>
+<div class="lab-note">파란 삼각형을 초록색 평면에 수직으로 정사영합니다. 점선은 정사영 방향입니다.</div>
+</div>
+<div class="lab-controls" data-panel="point" hidden>
+<label class="lab-control-label" for="pointT">선분 BC 위 점 P의 위치 <output id="pointTLabel">0.40</output></label>
+<input id="pointT" type="range" min="0" max="1" step="0.005" value="0.40">
+<div class="lab-values"><div><span>AP + DP</span><strong id="pointLength">—</strong></div><div><span>최솟값</span><strong id="pointMinimum">—</strong></div></div>
+<div class="lab-equation" id="pointEquation">P = B + t(C − B)</div>
+<button type="button" class="lab-secondary-action" id="snapMinimum">최솟값 위치로 이동</button>
+<div class="lab-note">노란 점 P를 선분 BC를 따라 직접 드래그하거나 슬라이더로 움직일 수 있습니다.</div>
+</div>
+<div class="lab-controls" data-panel="highlight" hidden>
+<div class="lab-control-label">선택할 면</div>
+<div class="lab-parts" id="faceChoices" role="group" aria-label="강조할 면"></div>
+<div class="lab-control-label">선택할 선분</div>
+<div class="lab-parts" id="edgeChoices" role="group" aria-label="강조할 선분"></div>
+<label class="lab-checkbox"><input type="checkbox" id="dimOthers" checked> 다른 면 흐리게 표시</label>
+<div class="lab-values"><div><span>선택한 요소</span><strong id="chosenPart">면 ABC</strong></div><div><span>넓이 또는 길이</span><strong id="chosenValue">—</strong></div></div>
+<div class="lab-note">도형의 면 또는 선분을 직접 터치해 선택할 수도 있습니다.</div>
+</div>
+</aside>
+</div>
+<section class="lab-guide">
+<div><b>조작 안내</b><p>한 손가락으로 회전, 두 손가락으로 확대·이동합니다. 마우스 드래그와 휠도 지원합니다.</p></div>
+<div><b>실험 모델 안내</b><p>이 실험실은 개념 설명용 모델입니다. 개별 기출문제의 원래 도형과 동일한 모델은 아닙니다.</p></div>
+</section>
+</main>
+<footer>GEOMETRY MOTION · 공간도형 실험실</footer>
+</body></html>
