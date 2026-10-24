@@ -27,6 +27,8 @@ const elements=[
  {mode:"highlight",panels:[]}
 ];
 const params=new URLSearchParams(location.search);
+const fromProblem=params.get("from")||params.get("problem");
+let problemLab=null;
 let mode=modes.includes(params.get("mode"))?params.get("mode"):"cut";
 let W=700,H=580,dpr=1,axes=false;
 let cam={yaw:-.64,pitch:.58,zoom:1,x:0,y:0};
@@ -34,8 +36,8 @@ let goal={...cam},velocity={yaw:0,pitch:0},momentum=false,lastFrame=0;
 let gestures=new Map(),gestureMode="none",pointerStart=null,lastMoveTime=0,lastVelocityTime=0;
 let model={cutHeight:0,cutTilt:24,projectTilt:30,t:.4,selected:"ABC",dimOthers:true};
 const sceneCenter={cut:[0,0,0],projection:[0,0,1],point:[0,0,1.3],highlight:[0,0,1.2]};
-const renderScale=()=>Math.min(W,H)*.38/3.5*cam.zoom;
-const sceneC=()=>sceneCenter[mode]||[0,0,0];
+const renderScale=()=>Math.min(W,H)*.38/(problemLab?.ready?problemLab.sceneScale():3.5)*cam.zoom;
+const sceneC=()=>problemLab?.ready?problemLab.sceneCenter():sceneCenter[mode]||[0,0,0];
 function project(world){
  const center=sceneC(),dx=world[0]-center[0],dy=world[1]-center[1],dz=world[2]-center[2];
  const cy=Math.cos(cam.yaw),sy=Math.sin(cam.yaw),cp=Math.cos(cam.pitch),sp=Math.sin(cam.pitch);
@@ -162,6 +164,7 @@ function drawHighlight(){
 }
 function draw(){
  background();
+ if(problemLab?.ready){problemLab.draw();return;}
  if(mode==="cut")drawCut();
  else if(mode==="projection")drawProjection();
  else if(mode==="point")drawPoint();
@@ -197,6 +200,7 @@ function updateUI(){
  });
 }
 function selectMode(next,save=true){
+ if(problemLab?.ready)return;
  if(!modes.includes(next))return;
  mode=next;momentum=false;velocity={yaw:0,pitch:0};
  byId("modeCode").textContent=titles[mode][0];
@@ -270,7 +274,8 @@ canvas.addEventListener("pointerdown",e=>{
  pointerStart={x:e.clientX,y:e.clientY,travel:0};
  try{canvas.setPointerCapture(e.pointerId);}catch(err){}
  setGesture();
- if(gestures.size===1&&mode==="point"){
+ if(gestures.size===1&&problemLab?.ready&&problemLab.nearDraggable(e.clientX,e.clientY)){gestureMode="dragProblemPoint";}
+ else if(gestures.size===1&&mode==="point"&&!problemLab?.ready){
   const p=project(pointPosition()),rect=canvas.getBoundingClientRect();
   if(Math.hypot(e.clientX-rect.left-p.x,e.clientY-rect.top-p.y)<28)gestureMode="dragPoint";
  }
@@ -282,7 +287,8 @@ canvas.addEventListener("pointermove",e=>{
  gestures.set(e.pointerId,coordinates(e));
  const dx=e.clientX-prev.x,dy=e.clientY-prev.y;
  if(pointerStart)pointerStart.travel+=Math.hypot(dx,dy);
- if(gestureMode==="dragPoint"&&gestures.size===1){
+ if(gestureMode==="dragProblemPoint"&&gestures.size===1){problemLab.movePoint(e.clientX,e.clientY);}
+ else if(gestureMode==="dragPoint"&&gestures.size===1){
   movePointAt(e.clientX,e.clientY);
  }else if(gestureMode==="orbit"&&gestures.size===1){
   const sensitivity=2.6/Math.max(260,Math.min(W,H));
@@ -343,9 +349,30 @@ for(const [root,values,prefix] of [["faceChoices",faces,"면 "],["edgeChoices",e
   b.addEventListener("click",()=>{model.selected=item;updateUI();});byId(root).appendChild(b);
  }
 }
-const from=params.get("from");
+const from=fromProblem;
 if(from&&/^[a-zA-Z0-9-]{1,90}$/.test(from)){
  const link=byId("backToLesson");link.href="viewer.html?id="+encodeURIComponent(from);link.hidden=false;
+}
+if(from&&/^[a-zA-Z0-9-]{1,90}$/.test(from)&&typeof window.GeometryProblemLab==="function"){
+ problemLab=window.GeometryProblemLab({byId,v,clamp,deg,fixed,drawSphere,ring,line,dot,polygon,planeCorners,surface,drawSurfaces,project,canvas});
+ byId("modeCode").textContent="PROBLEM EXPERIMENT";
+ byId("modeTitle").textContent="문항별 공간도형 실험";
+ byId("modeDescription").textContent="선택한 문항의 도형과 조건을 불러오는 중입니다.";
+ byId("sceneLabel").textContent="문항별 실험 모드";
+ document.querySelectorAll(".lab-mode").forEach(b=>b.classList.remove("active"));
+ document.querySelector(".lab-modes").hidden=true;
+ document.querySelectorAll("[data-panel]").forEach(p=>p.hidden=true);
+ byId("problemMode").hidden=false;
+ byId("labHint").textContent="원래 문항의 도형을 회전하면서 조건을 조작할 수 있습니다.";
+ problemLab.load(from).then(record=>{
+  byId("modeTitle").textContent="문항별 공간도형 실험";
+  byId("modeDescription").textContent="이 문항의 3D 풀이 데이터를 바탕으로 구성한 실험입니다. 슬라이더로 조건을 바꿔 공간적 변화를 확인할 수 있습니다.";
+  byId("sceneLabel").textContent=(record.sourceName||record.sourceType||"평가원")+" · "+record.number+"번";
+ }).catch(err=>{
+  byId("modeDescription").textContent=err.message+" 기존 개념 실험 모드를 이용할 수 있습니다.";
+  byId("problemMode").hidden=true;document.querySelector(".lab-modes").hidden=false;
+  problemLab=null;selectMode(mode,false);
+ });
 }
 window.addEventListener("resize",rescale);
 selectMode(mode,false);
