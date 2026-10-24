@@ -174,5 +174,31 @@
     "description": "구 위 두 움직이는 점을 정사영하여 넓이를 최적화",
     "answer": "23",
     "status": "solved"
+  },
+  {
+    "id": "private-speedrunner-26-30",
+    "sourceType": "사설",
+    "sourceName": "스피드러너 모의고사",
+    "year": null,
+    "exam": "26회",
+    "subject": "기하",
+    "number": 30,
+    "title": "사면체 · 접구 · 구의 단면",
+    "description": "사면체에 접하는 구와 절단 평면이 만드는 원의 넓이",
+    "answer": "8",
+    "status": "solved"
+  },
+  {
+    "id": "private-thepremium-oct-30",
+    "sourceType": "사설",
+    "sourceName": "더프리미엄",
+    "year": null,
+    "exam": "10월",
+    "subject": "기하",
+    "number": 30,
+    "title": "구 · 두 평면 · 수선의 발 최댓값",
+    "description": "두 평면으로의 정사영점 사이 거리의 최댓값",
+    "answer": "8",
+    "status": "solved"
   }
 ]
