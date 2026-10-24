@@ -18,7 +18,7 @@ function update(){
  const q=$("#search").value.trim().toLowerCase(), year=$("#year").value, exam=$("#exam").value, status=$("#status").value;
  const list=problems.filter(p=>(!q||`${label(p)} ${p.title} ${p.description}`.toLowerCase().includes(q))&&(!year||String(p.year)===year)&&(!exam||p.exam===exam)&&(!status||p.status===status));
  $("#results").textContent=`${list.length}개 문항`;
- $("#cards").innerHTML=list.length?list.map(p=>`<button class="card ${p.id===selected?"active":""}" data-id="${safe(p.id)}"><span class="id">${safe(label(p))}</span><h3>${safe(p.title)}</h3><span class="desc">${safe(p.description)}</span><span class="status ${p.status==="solved"?"solved":""}">${p.status==="solved"?"✓ 3D 풀이":"◷ 풀이 준비 중"}</span></button>`).join(""):'<p class="empty">검색 조건에 해당하는 문항이 없어.</p>';
+ $("#cards").innerHTML=list.length?list.map(p=>`<button class="card ${p.id===selected?"active":""}" data-id="${safe(p.id)}"><span class="id">${safe(label(p))}</span><h3>${safe(p.title)}</h3><span class="desc">${safe(p.description)}</span><span class="status ${p.status==="solved"?"solved":""}">${p.status==="solved"?"✓ 3D 풀이":"◷ 풀이 준비 중"}</span></button>`).join(""):'<p class="empty">검색 결과가 없습니다.</p>';
  $("#cards").querySelectorAll(".card").forEach(btn=>btn.addEventListener("click",()=>{selected=btn.dataset.id;history.replaceState(null,"",`?id=${encodeURIComponent(selected)}`);update();if(innerWidth<1000)$("#detail").scrollIntoView({behavior:"smooth",block:"start"});}));
  const p=problems.find(x=>x.id===selected);
  if(!p){$("#detail").innerHTML='<p class="placeholder">문항을 선택하면 상세 정보가 표시됩니다.</p>';return;}
