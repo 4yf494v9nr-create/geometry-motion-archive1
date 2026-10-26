@@ -172,7 +172,8 @@ function frame(time){
 function setStep(n){if(!lesson)return;step=Math.max(0,Math.min(lesson.steps.length-1,n));revealStart=performance.now();
  const s=lesson.steps[step],isConstruction=step>=lesson.baseStepCount;
  const index=isConstruction?step-lesson.baseStepCount+1:0;
- const phase=isConstruction?`<div class="construction-phase"><span>보조선 작도 ${index} / ${lesson.constructionSteps.length}</span><span>교선 · 수선 · 직각 · 법선</span></div>`:"";
+ const method=lesson.method==="three-perpendiculars"?"교선 · 삼수선 · 이면각":"교선 · 수선 · 직각 · 법선";
+ const phase=isConstruction?`<div class="construction-phase"><span>보조선 작도 ${index} / ${lesson.constructionSteps.length}</span><span>${method}</span></div>`:"";
  $("step").innerHTML=`<div class="index">STEP ${step+1} / ${lesson.steps.length}</div>${phase}<h2>${esc(s[0])}</h2><p>${esc(s[1])}</p><div class="formula">${esc(s[2])}</div>`;
  $("stepCount").textContent=`${step+1} / ${lesson.steps.length}`;
  $("prev").disabled=step===0;$("next").disabled=step===lesson.steps.length-1;
@@ -271,10 +272,10 @@ if(baseSwitch)baseSwitch.onchange=e=>{showConstructionBase=e.target.checked};
 window.addEventListener("resize",resize);resize();requestAnimationFrame(frame);
 (async()=>{try{
  const requestedId=new URLSearchParams(location.search).get("id")||"2027-09-28";const id=requestedId==="private-speedrunner-26-30"?"private-speedrunner-25-30":requestedId;const [l,p,x1,x2,x3,x4,constructionsRes]=await Promise.all([fetch("data/lessons.json"),fetch("data/problems.json"),fetch("data/lessons-extra-1.json"),fetch("data/lessons-extra-2.json"),fetch("data/lessons-extra-3.json"),fetch("data/lessons-private.json"),fetch("data/constructions.json")]);if(!l.ok||!p.ok||!x1.ok||!x2.ok||!x3.ok||!x4.ok||!constructionsRes.ok)throw Error("풀이 데이터를 불러오지 못했습니다.");
- const lessons={...(await l.json()),...(await x1.json()),...(await x2.json()),...(await x3.json()),...(await x4.json())},problems=await p.json(),constructions=await constructionsRes.json();lesson=lessons[id];if(lesson){lesson.baseStepCount=lesson.steps.length;lesson.constructionSteps=constructions[id]||[];lesson.steps=[...lesson.steps,...lesson.constructionSteps.map(x=>[x.title,x.explanation,x.formula])];updateSceneCenter(lesson.objects);}const current=problems.find(v=>v.id===id);
+ const lessons={...(await l.json()),...(await x1.json()),...(await x2.json()),...(await x3.json()),...(await x4.json())},problems=await p.json(),constructions=await constructionsRes.json();lesson=lessons[id];if(lesson){lesson.baseStepCount=lesson.steps.length;lesson.constructionSteps=constructions[id]||[];lesson.method=id==="2022-11-30"?"three-perpendiculars":null;lesson.steps=[...lesson.steps,...lesson.constructionSteps.map(x=>[x.title,x.explanation,x.formula])];updateSceneCenter(lesson.objects);}const current=problems.find(v=>v.id===id);
  if(!lesson)throw Error("선택한 문항의 3D 풀이가 아직 등록되지 않았습니다. 풀이가 있는 다른 문항을 선택해 주세요.");
  $("heading").textContent=current?`${current.year?current.year+"학년도 · ":""}${current.sourceType==="사설"?(current.sourceName+" · "):""}${current.exam==="대학수학능력시험"?"수능":current.exam} · ${current.subject||"기하"} ${current.number}번`:"3D 단계별 풀이";
  const experimentLink=document.getElementById("experimentLink");if(experimentLink&&current){const text=(current.title+" "+current.description).toLowerCase();const mode=/정사영|투영/.test(text)?"projection":/최솟값|최댓값|움직이는 점|최단거리/.test(text)?"point":/구|교원|단면|접구/.test(text)?"cut":"highlight";experimentLink.href="experiment.html?mode="+mode+"&from="+encodeURIComponent(id);}
  const sourceEl=document.getElementById("sourceInfo");if(sourceEl&&current){const category=current.sourceType||"평가원";sourceEl.textContent=category+(current.sourceName&&current.sourceName!==category?` · ${current.sourceName}`:"");}
- $("question").textContent=lesson.prompt;$("answer").textContent="정답 · "+lesson.answer;setStep(0);
+ $("question").textContent=lesson.prompt;$("answer").textContent="정답 · "+lesson.answer;const requestedStep=Number(new URLSearchParams(location.search).get("step"));setStep(Number.isInteger(requestedStep)&&requestedStep>=0?requestedStep:0);
  }catch(e){lesson=null;$("heading").textContent="풀이 준비 중";$("question").innerHTML=`<div class="error">${esc(e.message)}</div>`;$("step").hidden=true;$("answer").hidden=true;}})();
