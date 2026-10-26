@@ -4,3 +4,21 @@
 
 /* 공간도형 실험실 진입 링크 */
 .lab-home-link{display:inline-flex;align-items:center;gap:12px;margin-top:17px;padding:13px 19px;background:linear-gradient(105deg,#143e3b,#1b4550);border:1px solid #5edbc4;border-radius:10px;color:#bbfff1;font-size:13px;font-weight:800;transition:background .15s,transform .15s}.lab-home-link:hover{background:#21514c;transform:translateY(-1px)}.lab-home-link span{font-size:18px}.viewer-lab-link{display:block;text-align:center;margin:12px 0 16px;padding:14px 10px;border:1px solid #58c9bb;border-radius:10px;color:#83eedd;font-size:13px;font-weight:750;background:#173c3a}.viewer-lab-link:hover{background:#1e5149}@media(max-width:600px){.lab-home-link{font-size:12px;padding:12px 15px}}
+
+/* 이면각 및 보조선 작도 단계 */
+.construction-tools{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:16px 0 6px}
+.construction-tools button{flex:1 1 185px;border:1px solid #58ceb9;background:#144138;border-radius:9px;color:#a9ffed;font-weight:750;font-size:13px;min-height:43px}
+.construction-tools button[hidden]{display:none!important}
+.construction-tools button:hover{background:#1c594a}
+.construction-switch{display:flex;align-items:center;gap:7px;color:#b7c9dd;font-size:12px;line-height:1.4}
+.construction-switch input{width:17px;height:17px;accent-color:#5eead4;flex:none}
+.construction-phase{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 4px;padding:10px 11px;border:1px solid #49766f;border-radius:8px;background:#163b38;font-size:11px;color:#a9f7e9}
+.construction-phase span:first-child{color:#5eead4;font-weight:800}
+.construction-phase span:last-child{color:#b4d4d1}
+.construction-legend{display:flex;align-items:center;flex-wrap:wrap;gap:8px 13px;font-size:11px;color:#adc2d8;margin:12px 0 4px;line-height:1.5}
+.construction-legend[hidden]{display:none!important}
+.construction-legend span{display:inline-flex;align-items:center;gap:6px}
+.aux-dot{display:inline-block;width:19px;border-top:2px dashed #fbbf24}
+.aux-arc{display:inline-block;width:16px;height:11px;border-radius:50% 50% 0 0;border:2px solid #f472b6;border-bottom:0}
+.aux-right{display:inline-block;width:11px;height:11px;border-left:2px solid #5eead4;border-bottom:2px solid #5eead4}
+@media(max-width:600px){.construction-tools{gap:8px}.construction-switch{padding:5px 0}.construction-phase{font-size:10px}}
