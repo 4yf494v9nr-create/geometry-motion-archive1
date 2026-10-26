@@ -3,6 +3,7 @@ const $=(id)=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const V={sub:(a,b)=>a.map((x,i)=>x-b[i]),add:(a,b)=>a.map((x,i)=>x+b[i]),mul:(a,s)=>a.map(x=>x*s),cross:(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],norm:a=>Math.hypot(...a),unit:a=>{const n=Math.hypot(...a);return n?a.map(x=>x/n):[0,0,1]}};
 let lesson=null, step=0, axes=true, playing=false, playTimer=null,recorder=null,recTimer=null,recorded=[],recording=false,recFormat="video/webm";
+let revealStart=0,showConstructionBase=true;
 // z축을 수직으로 사용하는 오비트 카메라. 입력 목표값과 렌더링 값을 분리하여 지연·관성을 제어한다.
 const INITIAL_CAMERA={yaw:-.65,pitch:.58,zoom:1};
 let yaw=INITIAL_CAMERA.yaw,pitch=INITIAL_CAMERA.pitch,zoom=1,panX=0,panY=0;
@@ -82,13 +83,102 @@ function drawObject(obj){
  if(obj.type==="line"){line(obj.a,obj.b,c,2.5);}
  if(obj.type==="point"){const p=project(obj.p);ctx.shadowColor=c;ctx.shadowBlur=11;ctx.fillStyle=c;ctx.beginPath();ctx.arc(p[0],p[1],4.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.font="600 13px -apple-system, sans-serif";ctx.fillStyle="#eaf5ff";ctx.fillText(obj.id,p[0]+8,p[1]-8);}
 }
+// 보조선 작도 레이어: 원본 도형 위에 수선·교선·각 표시를 단계별로 누적하여 작도한다.
+function pointBetween(a,b,t){return a.map((x,i)=>x+(b[i]-x)*t)}
+function arrowAux(obj,alpha=1,progress=1){
+ const a=project(obj.a),b=project(pointBetween(obj.a,obj.b,progress));
+ const dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy);
+ if(len<3)return;
+ ctx.save();ctx.globalAlpha=alpha;ctx.lineWidth=2.9;ctx.strokeStyle=obj.color||"#f472b6";ctx.fillStyle=ctx.strokeStyle;
+ ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+ const ux=dx/len,uy=dy/len,tip=10;
+ ctx.beginPath();ctx.moveTo(b[0],b[1]);ctx.lineTo(b[0]-tip*ux+5*uy,b[1]-tip*uy-5*ux);ctx.lineTo(b[0]-tip*ux-5*uy,b[1]-tip*uy+5*ux);ctx.closePath();ctx.fill();
+ if(obj.label&&progress>.8){ctx.font="700 12px -apple-system,sans-serif";ctx.fillText(obj.label,b[0]+10,b[1]-9);}
+ ctx.restore();
+}
+function auxLabel(text,xyz,color,alpha=1){
+ if(!text)return;const q=project(xyz);
+ ctx.save();ctx.globalAlpha=alpha;ctx.font="700 12px -apple-system,BlinkMacSystemFont,sans-serif";
+ const width=ctx.measureText(text).width+12;
+ ctx.fillStyle="rgba(8,19,38,.86)";ctx.fillRect(q[0]-width/2,q[1]-17,width,19);
+ ctx.fillStyle=color||"#fff";ctx.textAlign="center";ctx.fillText(text,q[0],q[1]-3);
+ ctx.restore();
+}
+function constructionObject(obj,progress=1,alpha=1){
+ const color=obj.color||"#fbbf24";if(progress<=0)return;
+ ctx.save();ctx.globalAlpha=alpha;
+ if(obj.type==="aux-line"||obj.type==="aux-polyline"){
+  ctx.strokeStyle=color;ctx.lineWidth=3;ctx.lineCap="round";ctx.setLineDash([7,5]);
+  let points=obj.type==="aux-line"?[obj.a,obj.b]:obj.pts;
+  if(obj.type==="aux-line")points=[obj.a,pointBetween(obj.a,obj.b,progress)];
+  else if(progress<1){const count=Math.max(2,Math.floor((points.length-1)*progress)+1);points=points.slice(0,count);}
+  path3(points);
+  ctx.stroke();ctx.setLineDash([]);
+  if(obj.label&&progress>.7)auxLabel(obj.label,obj.type==="aux-line"?pointBetween(obj.a,obj.b,.62):obj.pts[Math.floor(obj.pts.length*.45)],color,alpha);
+ }else if(obj.type==="aux-point"){
+  const p=project(obj.p);
+  ctx.shadowColor=color;ctx.shadowBlur=16;ctx.fillStyle=color;
+  ctx.beginPath();ctx.arc(p[0],p[1],5*progress,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;
+  if(progress>.65){ctx.font="700 13px -apple-system,sans-serif";ctx.fillText(obj.id,p[0]+9,p[1]-10);}
+ }else if(obj.type==="arrow"){arrowAux(obj,alpha,progress);}
+ else if(obj.type==="aux-polygon"){
+  path3(obj.pts,true);ctx.fillStyle=mix(color,.14*progress);ctx.fill();
+  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+  if(obj.label&&progress>.8){const mid=obj.pts.reduce((a,p)=>a.map((x,i)=>x+p[i]),[0,0,0]).map(x=>x/obj.pts.length);auxLabel(obj.label,mid,color,alpha);}
+ }else if(obj.type==="angle"||obj.type==="right-angle"){
+  const VA=V.unit(V.sub(obj.a,obj.vertex)),VB=V.unit(V.sub(obj.b,obj.vertex));
+  const r=obj.radius||Math.min(1.4,(lesson?.scale||10)*.08);
+  if(obj.type==="angle"){
+   const cosine=clamp(VA.reduce((sum,x,i)=>sum+x*VB[i],0),-1,1),angle=Math.acos(cosine);
+   if(angle>1e-5){
+    const side=V.unit(V.sub(VB,V.mul(VA,cosine))),count=32;
+    const pts=Array.from({length:count+1},(_,i)=>V.add(obj.vertex,V.mul(V.add(V.mul(VA,Math.cos(angle*i/count*progress)),V.mul(side,Math.sin(angle*i/count*progress))),r)));
+    path3(pts);ctx.strokeStyle=color;ctx.lineWidth=3;ctx.stroke();
+    if(progress>.82){const mid=angle*.52,point=V.add(obj.vertex,V.mul(V.add(V.mul(VA,Math.cos(mid)),V.mul(side,Math.sin(mid))),r+(.16*lesson.scale/10)));
+     auxLabel(obj.label||"θ",point,color,alpha);}
+   }
+  }else{
+   const size=obj.size||Math.max(.3,(lesson?.scale||10)*.045),vtx=obj.vertex,
+    a=V.add(vtx,V.mul(VA,size)),b=V.add(vtx,V.mul(VB,size)),corner=V.add(a,V.mul(VB,size));
+   path3([a,corner,b]);ctx.strokeStyle=color;ctx.lineWidth=2.5;ctx.stroke();
+  }
+ }
+ ctx.restore();
+}
+function drawConstruction(time){
+ if(!lesson?.constructionSteps?.length||step<lesson.baseStepCount)return;
+ const index=step-lesson.baseStepCount;
+ const progress=1-Math.pow(1-clamp((time-revealStart)/700,0,1),3);
+ lesson.constructionSteps.forEach((stage,i)=>{
+  if(i>index)return;
+  const current=i===index;
+  for(const obj of stage.objects||[])constructionObject(obj,current?progress:1,current?1:.62);
+ });
+}
+
 function frame(time){
  const dt=lastFrameTime?clamp((time-lastFrameTime)/1000,0,.05):1/60;lastFrameTime=time;updateCamera(dt);
- if(lesson){background();const visible=lesson.objects.filter(o=>(o.step||0)<=step);const order={sphere:0,plane:1,polygon:2,circle:3,line:4,point:5};visible.sort((a,b)=>(order[a.type]??6)-(order[b.type]??6));for(const o of visible)drawObject(o);}
+ if(lesson){background();const isConstruction=step>=lesson.baseStepCount;
+ const visible=lesson.objects.filter(o=>(o.step||0)<=(isConstruction?lesson.baseStepCount-1:step));
+ const order={sphere:0,plane:1,polygon:2,circle:3,line:4,point:5};
+ visible.sort((a,b)=>(order[a.type]??6)-(order[b.type]??6));
+ for(const o of visible){ctx.save();if(isConstruction){ctx.globalAlpha=showConstructionBase?(o.type==="point"?.58:.35):0;}drawObject(o);ctx.restore();}
+ drawConstruction(time);
+ }
  else{ctx.fillStyle="#081124";ctx.fillRect(0,0,W,H);ctx.fillStyle="#a8bad4";ctx.font="16px sans-serif";ctx.fillText("3D 장면을 불러오는 중...",26,H/2)}
  requestAnimationFrame(frame);
 }
-function setStep(n){if(!lesson)return;step=Math.max(0,Math.min(lesson.steps.length-1,n));const s=lesson.steps[step];$("step").innerHTML=`<div class="index">STEP ${step+1} / ${lesson.steps.length}</div><h2>${esc(s[0])}</h2><p>${esc(s[1])}</p><div class="formula">${esc(s[2])}</div>`;$("stepCount").textContent=`${step+1} / ${lesson.steps.length}`;$("prev").disabled=step===0;$("next").disabled=step===lesson.steps.length-1;}
+function setStep(n){if(!lesson)return;step=Math.max(0,Math.min(lesson.steps.length-1,n));revealStart=performance.now();
+ const s=lesson.steps[step],isConstruction=step>=lesson.baseStepCount;
+ const index=isConstruction?step-lesson.baseStepCount+1:0;
+ const phase=isConstruction?`<div class="construction-phase"><span>보조선 작도 ${index} / ${lesson.constructionSteps.length}</span><span>교선 · 수선 · 직각 · 법선</span></div>`:"";
+ $("step").innerHTML=`<div class="index">STEP ${step+1} / ${lesson.steps.length}</div>${phase}<h2>${esc(s[0])}</h2><p>${esc(s[1])}</p><div class="formula">${esc(s[2])}</div>`;
+ $("stepCount").textContent=`${step+1} / ${lesson.steps.length}`;
+ $("prev").disabled=step===0;$("next").disabled=step===lesson.steps.length-1;
+ const jump=$("constructionJump");if(jump){jump.hidden=!lesson.constructionSteps.length;jump.textContent=isConstruction?"기본 풀이로 돌아가기":"보조선 작도 바로 보기";}
+ const legend=$("constructionLegend");if(legend)legend.hidden=!isConstruction;
+}
 function endPlay(){playing=false;clearInterval(playTimer);playTimer=null;$("play").textContent="▶ 자동 재생"}
 function autoplay(){if(!lesson||recording)return;if(playing){endPlay();return;}playing=true;$("play").textContent="⏸ 일시정지";playTimer=setInterval(()=>{if(step>=lesson.steps.length-1){endPlay();return;}setStep(step+1);},2500);}
 async function startRecord(){
@@ -174,10 +264,14 @@ $("prev").onclick=()=>{endPlay();setStep(step-1)};
 $("next").onclick=()=>{endPlay();setStep(step+1)};
 $("start").onclick=()=>{endPlay();setStep(0)};
 $("play").onclick=autoplay;$("record").onclick=startRecord;
+const constructionJump=$("constructionJump");
+if(constructionJump)constructionJump.onclick=()=>{endPlay();if(!lesson)return;setStep(step>=lesson.baseStepCount?0:lesson.baseStepCount);};
+const baseSwitch=$("showBase");
+if(baseSwitch)baseSwitch.onchange=e=>{showConstructionBase=e.target.checked};
 window.addEventListener("resize",resize);resize();requestAnimationFrame(frame);
 (async()=>{try{
- const requestedId=new URLSearchParams(location.search).get("id")||"2027-09-28";const id=requestedId==="private-speedrunner-26-30"?"private-speedrunner-25-30":requestedId;const [l,p,x1,x2,x3,x4]=await Promise.all([fetch("data/lessons.json"),fetch("data/problems.json"),fetch("data/lessons-extra-1.json"),fetch("data/lessons-extra-2.json"),fetch("data/lessons-extra-3.json"),fetch("data/lessons-private.json")]);if(!l.ok||!p.ok||!x1.ok||!x2.ok||!x3.ok||!x4.ok)throw Error("풀이 데이터를 불러오지 못했습니다.");
- const lessons={...(await l.json()),...(await x1.json()),...(await x2.json()),...(await x3.json()),...(await x4.json())},problems=await p.json();lesson=lessons[id];if(lesson)updateSceneCenter(lesson.objects);const current=problems.find(v=>v.id===id);
+ const requestedId=new URLSearchParams(location.search).get("id")||"2027-09-28";const id=requestedId==="private-speedrunner-26-30"?"private-speedrunner-25-30":requestedId;const [l,p,x1,x2,x3,x4,constructionsRes]=await Promise.all([fetch("data/lessons.json"),fetch("data/problems.json"),fetch("data/lessons-extra-1.json"),fetch("data/lessons-extra-2.json"),fetch("data/lessons-extra-3.json"),fetch("data/lessons-private.json"),fetch("data/constructions.json")]);if(!l.ok||!p.ok||!x1.ok||!x2.ok||!x3.ok||!x4.ok||!constructionsRes.ok)throw Error("풀이 데이터를 불러오지 못했습니다.");
+ const lessons={...(await l.json()),...(await x1.json()),...(await x2.json()),...(await x3.json()),...(await x4.json())},problems=await p.json(),constructions=await constructionsRes.json();lesson=lessons[id];if(lesson){lesson.baseStepCount=lesson.steps.length;lesson.constructionSteps=constructions[id]||[];lesson.steps=[...lesson.steps,...lesson.constructionSteps.map(x=>[x.title,x.explanation,x.formula])];updateSceneCenter(lesson.objects);}const current=problems.find(v=>v.id===id);
  if(!lesson)throw Error("선택한 문항의 3D 풀이가 아직 등록되지 않았습니다. 풀이가 있는 다른 문항을 선택해 주세요.");
  $("heading").textContent=current?`${current.year?current.year+"학년도 · ":""}${current.sourceType==="사설"?(current.sourceName+" · "):""}${current.exam==="대학수학능력시험"?"수능":current.exam} · ${current.subject||"기하"} ${current.number}번`:"3D 단계별 풀이";
  const experimentLink=document.getElementById("experimentLink");if(experimentLink&&current){const text=(current.title+" "+current.description).toLowerCase();const mode=/정사영|투영/.test(text)?"projection":/최솟값|최댓값|움직이는 점|최단거리/.test(text)?"point":/구|교원|단면|접구/.test(text)?"cut":"highlight";experimentLink.href="experiment.html?mode="+mode+"&from="+encodeURIComponent(id);}
