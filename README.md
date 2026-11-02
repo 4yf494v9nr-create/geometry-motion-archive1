@@ -73,3 +73,13 @@ GitHub Pages가 `main` 브랜치의 `/(root)`를 자동 배포합니다. Render�
 평면 PQR과 xy평면의 교선을 ℓ이라 하면 P에서 xy평면에 내린 수선의 발은 O입니다. ℓ 위 점 E가 OE⊥ℓ을 만족할 때 삼수선의 정리에 따라 PE⊥ℓ이며, 이면각은 ∠PEO입니다. OE=√2, OP=1, PE=√3이므로 cosθ=√6/3입니다. 기본 풀이 5~6단계와 심화 작도 단계에 실제 교선 ℓ, OE, PE 및 직각 표식을 추가했습니다.
 
 [삼수선 작도 단계 바로 열기](https://4yf494v9nr-create.github.io/geometry-motion-archive1/viewer.html?id=2022-11-30&step=9)
+
+## 네이버·구글 검색엔진용 정적 페이지 (2026-11-02)
+
+- `index.html`에는 실제 HTML에 표시되는 기하 기출 3D 풀이 목록과 개별 소개 페이지 링크를 추가했습니다.
+- `problems/<문항 ID>.html` 페이지 17개는 각자 다른 제목·설명·canonical URL·단계별 해설을 포함합니다.
+- `guide.html`에는 이용 안내와 보조선 작도 사용법을 제공합니다.
+- `sitemap.xml`은 홈페이지, 이용 안내, 3D 실험실, 17개 문항을 합한 20개 URL을 포함합니다.
+- `robots.txt`도 프로젝트 폴더에 두었습니다. 단, GitHub Pages **프로젝트 사이트**는 `/geometry-motion-archive1/` 하위에 있기 때문에 이 파일이 도메인의 `/robots.txt`를 대신하지는 못합니다.
+
+**네이버 서치어드바이저 등록 제한:** 네이버는 사이트 등록 시 URL 경로가 아닌 **호스트 단위**만 허용합니다. 현재 배포 주소는 GitHub Pages의 프로젝트 경로이므로 소유 확인용 HTML 파일이나 메타 태그를 이 프로젝트의 `index.html`에만 넣어서는 `https://4yf494v9nr-create.github.io/` 도메인 루트의 소유를 확인할 수 없습니다. 웹마스터도구 등록을 위해서는 사용자 GitHub Pages 루트 사이트를 별도로 관리하거나, 독립 도메인을 연결하는 것을 권장합니다. 소유 확인이 완료되면 `https://4yf494v9nr-create.github.io/geometry-motion-archive1/sitemap.xml`을 제출할 수 있습니다. 기술적 SEO 개선이 네이버 색인이나 순위를 보장하지는 않습니다.
