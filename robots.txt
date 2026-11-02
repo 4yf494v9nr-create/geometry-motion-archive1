@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://4yf494v9nr-create.github.io/geometry-motion-archive1/sitemap.xml

@@ -22,3 +22,37 @@
 .aux-arc{display:inline-block;width:16px;height:11px;border-radius:50% 50% 0 0;border:2px solid #f472b6;border-bottom:0}
 .aux-right{display:inline-block;width:11px;height:11px;border-left:2px solid #5eead4;border-bottom:2px solid #5eead4}
 @media(max-width:600px){.construction-tools{gap:8px}.construction-switch{padding:5px 0}.construction-phase{font-size:10px}}
+
+/* 검색엔진과 이용자 모두 접근 가능한 정적 기하 풀이 페이지 */
+.seo-container{max-width:880px;margin:0 auto;padding:58px 24px 88px}
+.seo-container h1{font-size:clamp(29px,4.2vw,44px);line-height:1.35;letter-spacing:-1px;margin:16px 0 18px}
+.seo-container h1 em{color:#5eead4;font-style:normal}
+.seo-lead{font-size:16px;line-height:2;color:#c2d2e7;max-width:760px;margin:0 0 22px}
+.seo-breadcrumb{font-size:12px;color:#94a9c4;margin-bottom:30px}
+.seo-breadcrumb a:hover,.seo-related a:hover,.seo-index-list a:hover{color:#5eead4}
+.seo-breadcrumb span{margin:0 9px}
+.seo-section,.seo-related{margin-top:28px;border:1px solid #2a4059;background:#111e32;border-radius:13px;padding:24px}
+.seo-section h2,.seo-related h2{font-size:20px;margin:0 0 16px}
+.seo-section p,.seo-related p{font-size:14px;line-height:1.9;color:#b4c7dd}
+.seo-facts{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0}
+.seo-facts span{border:1px solid #3c5672;background:#152941;border-radius:7px;padding:9px 12px;color:#d0e1f1;font-size:12px}
+.seo-action{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.seo-action .lab-home-link{margin-top:0}
+.seo-secondary{display:inline-block;border:1px solid #4a6983;padding:12px 16px;border-radius:9px;font-size:13px;color:#a7e7dc;font-weight:650;margin:10px 0}
+.seo-secondary:hover{border-color:#5eead4}
+.seo-steps{list-style:none;counter-reset:steps;padding:0;margin:0}
+.seo-steps li{padding:16px 0;border-bottom:1px solid #293e56}
+.seo-steps li:last-child{border-bottom:0}
+.seo-steps h3{font-size:15px;margin:0 0 6px;color:#edf6ff}
+.seo-steps p{margin:6px 0 0}
+.seo-steps .seo-formula{color:#7bdccf;font-family:ui-monospace,monospace;font-size:13px;overflow-wrap:anywhere}
+.seo-related ul{list-style:disc;padding-left:22px;color:#c1cfe5;line-height:2.1;font-size:13px}
+.seo-back{display:inline-block;margin-top:30px;font-size:14px;color:#8cead7}
+.seo-index{max-width:1250px;margin:25px auto;padding:30px 28px 38px}
+.seo-index h2{font-size:24px;margin:12px 0}.seo-index>p{font-size:13px;color:#a5bcd7;line-height:1.8}
+.seo-index-list{list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0;margin:20px 0}
+.seo-index-list li{min-width:0;background:#14233a;border:1px solid #2b4059;border-radius:10px}
+.seo-index-list a{display:flex;flex-direction:column;gap:8px;padding:17px 16px}
+.seo-index-list strong{font-size:13px;font-weight:700;color:#dbe8f8}
+.seo-index-list span{font-size:12px;color:#9bafc7}
+@media(max-width:700px){.seo-container{padding:34px 17px 58px}.seo-section,.seo-related{padding:17px}.seo-index{padding:22px 14px}.seo-index-list{grid-template-columns:1fr}}
